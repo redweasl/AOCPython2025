@@ -10,20 +10,39 @@
 # Refreshers: Modulus wraps around negatives too
 # The remainder will have the same sign as the modulus
 
-# Read the text file
-dialNum = 50
-numZeroes = 0
-fileName = "AOCday1example"
-with open(fileName + ".txt", "r") as file:
-    for line in file:
-        # Change for valid lines only
-        if len(line) > 0:
+# Part 1 code: Count how many times the dial goes to 0
+def partOne(dialNum, numZeroes, fileName):
+    with open(fileName + ".txt", "r") as file:
+        for line in file:
+            # Assuming that all lines have an instruction on them.
             direction = line[0:1]
             if direction == "R":
                 dialNum = (dialNum + int(line[1:len(line)])) % 100
             else:
                 dialNum = (dialNum - int(line[1:len(line)])) % 100
             numZeroes = numZeroes + 1 if dialNum == 0 else numZeroes
-            print("The dial number is %d. Current number of zeroes: %d" % (dialNum, numZeroes))
-print("The password is %d" % (numZeroes))
+    print("The password is %d" % (numZeroes))
+
+# Part 2 code: Count how many times the dial passes/points to 0
+def partTwo(dialNum, numZeroes, fileName):
+    with open(fileName + ".txt", "r") as file:
+        for line in file:
+            # Assuming that all lines have an instruction on them.
+            direction = line[0:1]
+            if direction == "R":
+                dialNum = (dialNum + int(line[1:len(line)]))
+                numZeroes += dialNum // 100 # This counts if we stop at 0
+                dialNum = dialNum % 100
+            else:
+                passZero = 1 if dialNum == 0 else 0 # Handle edge case when we start at 0
+                dialNum = (dialNum - int(line[1:len(line)]))
+                numZeroes += (dialNum // 100 * -1) - passZero # This counts extra if we start at 0. Doesn't count if it stops at 0
+                dialNum = dialNum % 100
+                numZeroes = numZeroes + 1 if dialNum == 0 else numZeroes # Handle edge case when we end at 0
+    print("The password is %d" % (numZeroes))
+
+dialNum = 50
+numZeroes = 0
+fileName = "AOCday1"
+partTwo(dialNum, numZeroes, fileName)
 
