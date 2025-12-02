@@ -12,7 +12,7 @@
 
 # Part 1 code: Count how many times the dial goes to 0
 def partOne(dialNum, numZeroes, fileName):
-    with open("AOCDay1/" + fileName + ".txt", "r") as file:
+    with open(fileName + ".txt", "r") as file:
         for line in file:
             # Assuming that all lines have an instruction on them.
             direction = line[0:1]
@@ -25,7 +25,7 @@ def partOne(dialNum, numZeroes, fileName):
 
 # Part 2 code: Count how many times the dial passes/points to 0
 def partTwo(dialNum, numZeroes, fileName):
-    with open("AOCDay1/" + fileName + ".txt", "r") as file:
+    with open(fileName + ".txt", "r") as file:
         for line in file:
             # Assuming that all lines have an instruction on them.
             direction = line[0:1]
