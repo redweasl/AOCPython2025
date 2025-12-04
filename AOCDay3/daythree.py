@@ -30,7 +30,7 @@ def max_joltage(batteries, num_activate):
         rightEnd += 1
     return joltage
 
-# Process input, returns a list of ranges
+# Process input, returns a list of banks
 def process_input(input_name):
     with open(input_name, "r") as file:
         content = file.read()
