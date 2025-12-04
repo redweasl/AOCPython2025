@@ -10,17 +10,6 @@ def total_joltage(banks, num_activate=2):
     return sum
 
 def max_joltage(batteries, num_activate):
-    # joltageTen = 0
-    # b2 = 0
-    # for b1 in range (len(batteries) - 1):
-    #     if int(batteries[b1]) * 10 > joltageTen:
-    #         joltageTen = int(batteries[b1]) * 10
-    #         b2 = b1
-    # b2 += 1
-    # joltage = joltageTen
-    # while b2 < len(batteries):
-    #     joltage = max(joltage, joltageTen + int(batteries[b2]))
-    #     b2 += 1
     oldJoltage = 0
     joltage = 0
     leftEnd = 0
@@ -39,8 +28,6 @@ def max_joltage(batteries, num_activate):
             b += 1
         leftEnd = max_idx + 1
         rightEnd += 1
-
-    # print("Max joltage for a bank of %s turning on %d batteries was %d" % (batteries, num_activate, joltage))
     return joltage
 
 # Process input, returns a list of ranges
