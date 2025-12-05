@@ -21,6 +21,7 @@ def process_input(input_name):
                 fresh_id_ranges[i][j] = int(fresh_id_ranges[i][j])
     return ids, fresh_id_ranges
 
+# Part 1
 def num_ingredients_fresh(ids, fresh_id_ranges):
     num_fresh = 0
     for id in ids:
@@ -40,9 +41,55 @@ def part_one():
     ids, fresh_id_ranges = process_input(file)
     print("Part 1, number of fresh ids: %d" % (num_ingredients_fresh(ids, fresh_id_ranges)))
 
+# Part 2 (351985169237386 is incorrect)
+def total_num_fresh_ids(fresh_id_ranges: list):
+    num_fresh_ids = 0
+    merged_id_ranges = []
+
+    for fresh_id_range in fresh_id_ranges:
+        merged = False
+        range_to_insert = fresh_id_range
+        idx = 0
+        while (not merged) and idx < len(merged_id_ranges):
+            left_overlap = fresh_id_range[0] >= merged_id_ranges[idx][0] and fresh_id_range[0] <= merged_id_ranges[idx][1]
+            right_overlap = fresh_id_range[1] >= merged_id_ranges[idx][0] and fresh_id_range[1] <= merged_id_ranges[idx][1]
+            if left_overlap and right_overlap:
+                merged = True
+            elif left_overlap:
+                # merged_id_ranges[idx][1] = fresh_id_range[1]
+                range_to_insert[0] = merged_id_ranges[idx][0]
+                merged_id_ranges.pop(idx)
+            elif right_overlap:
+                # merged_id_ranges[idx][0] = fresh_id_range[0]
+                range_to_insert[1] = merged_id_ranges[idx][1]
+                merged_id_ranges.pop(idx)
+            else:
+                idx += 1
+        if not merged:
+            merged_id_ranges.insert(0, fresh_id_range)
+    
+    print("Merged ranges: %s" % (merged_id_ranges))
+
+    i = 0
+    for id_range in merged_id_ranges:
+        total_range = id_range[1] - id_range[0] + 1
+        num_fresh_ids += total_range
+        print("%d: Added %d ids." % (i, total_range))
+        i += 1
+
+    return num_fresh_ids
+
+# Part 2: Find total number of fresh ids
+def part_two():
+    file = "Inputs/AOCday5.txt"
+    ids, fresh_id_ranges = process_input(file)
+    print("Part 2, total number of fresh ids: %d" % (total_num_fresh_ids(fresh_id_ranges)))
+
 part_one()
 
-# file = "AOCDay5/AOCday5example.txt"
-# ids, fresh_id_ranges = process_input(file)
-# print("Available ids: %s\nFresh id ranges: %s" % (ids, fresh_id_ranges))
-# print("Example, number of fresh ids: %d" % (num_ingredients_fresh(ids, fresh_id_ranges)))
+file = "AOCDay5/AOCday5example.txt"
+ids, fresh_id_ranges = process_input(file)
+print("Available ids: %s\nFresh id ranges: %s" % (ids, fresh_id_ranges))
+print("Example, number of fresh ids: %d" % (total_num_fresh_ids(fresh_id_ranges)))
+
+part_two()
