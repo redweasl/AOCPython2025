@@ -41,7 +41,9 @@ def part_one():
     ids, fresh_id_ranges = process_input(file)
     print("Part 1, number of fresh ids: %d" % (num_ingredients_fresh(ids, fresh_id_ranges)))
 
-# Part 2 (351985169237386 is incorrect)
+# Part 2 
+# A1: 351985169237386 is incorrect
+# A2: 343465683277369 is incorrect (too high)
 def total_num_fresh_ids(fresh_id_ranges: list):
     num_fresh_ids = 0
     merged_id_ranges = []
