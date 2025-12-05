@@ -42,35 +42,29 @@ def part_one():
     print("Part 1, number of fresh ids: %d" % (num_ingredients_fresh(ids, fresh_id_ranges)))
 
 # Part 2 
-# A1: 351985169237386 is incorrect
-# A2: 343465683277369 is incorrect (too high)
+# The list of id ranges should be sorted first by minimum value (followed by maximum value)
 def total_num_fresh_ids(fresh_id_ranges: list):
     num_fresh_ids = 0
-    merged_id_ranges = []
+    merged_id_ranges = fresh_id_ranges.copy()
 
-    for fresh_id_range in fresh_id_ranges:
-        merged = False
-        range_to_insert = fresh_id_range
-        idx = 0
-        while (not merged) and idx < len(merged_id_ranges):
-            left_overlap = fresh_id_range[0] >= merged_id_ranges[idx][0] and fresh_id_range[0] <= merged_id_ranges[idx][1]
-            right_overlap = fresh_id_range[1] >= merged_id_ranges[idx][0] and fresh_id_range[1] <= merged_id_ranges[idx][1]
-            if left_overlap and right_overlap:
-                merged = True
-            elif left_overlap:
-                # merged_id_ranges[idx][1] = fresh_id_range[1]
-                range_to_insert[0] = merged_id_ranges[idx][0]
-                merged_id_ranges.pop(idx)
-            elif right_overlap:
-                # merged_id_ranges[idx][0] = fresh_id_range[0]
-                range_to_insert[1] = merged_id_ranges[idx][1]
-                merged_id_ranges.pop(idx)
-            else:
-                idx += 1
-        if not merged:
-            merged_id_ranges.insert(0, fresh_id_range)
-    
-    print("Merged ranges: %s" % (merged_id_ranges))
+    # Sort by minimum id
+    merged_id_ranges.sort(key=get_lower_range)
+
+    # Process pairs.
+    idx = 0
+    while idx < len(merged_id_ranges) - 1:
+        if merged_id_ranges[idx][1] >= merged_id_ranges[idx + 1][1]:
+            # Second entry completely within first: discard it.
+            merged_id_ranges.pop(idx + 1)
+        elif merged_id_ranges[idx][1] >= merged_id_ranges[idx + 1][0]:
+            # The two entries overlap with the largest id in entry i being largest than the smallest id in entry i + 1.
+            merged_id_ranges[idx][1] = merged_id_ranges[idx + 1][1]
+            merged_id_ranges.pop(idx + 1)
+        else:
+            # No merging occurred. Shift over one space.
+            idx += 1
+
+    print("Merged ranges by minimum value: %s" % (merged_id_ranges))
 
     i = 0
     for id_range in merged_id_ranges:
@@ -81,6 +75,9 @@ def total_num_fresh_ids(fresh_id_ranges: list):
 
     return num_fresh_ids
 
+def get_lower_range(range: list):
+    return range[0]
+
 # Part 2: Find total number of fresh ids
 def part_two():
     file = "Inputs/AOCday5.txt"
@@ -88,10 +85,4 @@ def part_two():
     print("Part 2, total number of fresh ids: %d" % (total_num_fresh_ids(fresh_id_ranges)))
 
 part_one()
-
-file = "AOCDay5/AOCday5example.txt"
-ids, fresh_id_ranges = process_input(file)
-print("Available ids: %s\nFresh id ranges: %s" % (ids, fresh_id_ranges))
-print("Example, number of fresh ids: %d" % (total_num_fresh_ids(fresh_id_ranges)))
-
 part_two()
