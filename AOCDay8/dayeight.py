@@ -107,7 +107,7 @@ def connect_circuits(box_pairs, x, num_circuits=3):
 
     product = 1
     x = 0
-    while x < 3 and x < len(circuit_sizes):
+    while x < num_circuits and x < len(circuit_sizes):
         product *= circuit_sizes[x]
         x += 1
 
@@ -117,17 +117,70 @@ def part_one():
     file = "Inputs/AOCday8.txt"
     boxes = process_input(file)
     box_pairs = assemble_pair_list(boxes)
-    print("P1: Sorted pair list by distance")
     product = connect_circuits(box_pairs, 1000)
     print("P1: Circuit product is", product)
 
-
-file = "AOCDay8/AOCday8example.txt"
-boxes = process_input(file)
-box_pairs = assemble_pair_list(boxes)
-print("EX: Sorted pair list by distance")
-product = connect_circuits(box_pairs, 10)
-
-print("EX: Circuit product is", product)
-
 part_one()
+
+#######################################################################################
+
+# Part 2: Connect circuits until every single box is in a single circuit
+# Get product of X coords of the last two boxes
+def connect_all(box_pairs, boxes):
+    pair_num = 0
+    num_boxes_connected = 0
+    x1 = 0
+    x2 = 0
+    circuits = {}
+    print("Connecting circuits until all are in one")
+
+    while (len(circuits.keys()) != 1 or num_boxes_connected < len(boxes)):
+        # print("Pair number %d" % (pair_num))
+        # Connect the circuits and update the box circuit sizes
+        box_one: Box = box_pairs[pair_num][0]
+        box_two: Box = box_pairs[pair_num][1]
+        x1 = box_one.x
+        x2 = box_two.x
+        if box_one.key == -1 and box_two.key == -1:
+            # print("Two boxes aren't in pre-existing circuit")
+            key = str(pair_num)
+            circuits[key] = [box_one, box_two]
+            box_one.set_key(key)
+            box_two.set_key(key)
+            num_boxes_connected += 2
+        elif box_one.key != -1 and box_two.key == -1:
+            # print("Box one is in a circuit")
+            c: list = circuits.get(box_one.key)
+            c.insert(len(c), box_two)
+            box_two.set_key(box_one.key)
+            num_boxes_connected += 1
+        elif box_one.key == -1 and box_two.key != -1:
+            # print("Box two is in a circuit")
+            c: list = circuits.get(box_two.key)
+            c.insert(len(c), box_one)
+            box_one.set_key(box_two.key)
+            num_boxes_connected += 1
+        elif box_one.key != box_two.key:
+            # print("Both boxes are in two different circuits")
+            c1: list = circuits.get(box_one.key)
+            c2: list = circuits.pop(box_two.key)
+            for box in c2:
+                c1.insert(len(c1), box)
+                box.set_key(box_one.key)
+        pair_num += 1
+
+    circuit_sizes = [len(circuit) for circuit in circuits.values()]
+    print("Number of circuits: %d" % (len(circuit_sizes)))
+    print("Circuit sizes: %s" % (circuit_sizes))
+
+    # Return the product of the x coords of the last two boxes connected
+    return x1 * x2
+
+def part_two():
+    file = "Inputs/AOCday8.txt"
+    boxes = process_input(file)
+    box_pairs = assemble_pair_list(boxes)
+    product = connect_all(box_pairs, boxes)
+    print("P2: Product of last two box X coords is", product)
+
+part_two()
