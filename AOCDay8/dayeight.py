@@ -29,7 +29,7 @@ class Box:
     def __str__(self):
         return "(" + str(self.x) + "," + str(self.y) + "," + str(self.z) + ")"
 
-# Process input, returns a grid layout
+# Process input, returns a list of boxes
 def process_input(input_name):
     boxes = []
     with open(input_name, "r") as file:
