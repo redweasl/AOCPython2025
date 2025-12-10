@@ -75,15 +75,18 @@ part_one()
 # Multiple lines case: If there are several lines adjacent in a sequence, that sequence must be even in length.
 # B. If its neighbors form a right angle, C.P. should indicate the outside side. If that side is filled by another right angle vector, it is clear.
 # If all checks are passed, then we have a valid rectangle!
+# HINT: The input does not include any points in the middle of lines, only corners!!!
+
+# Attempt 1 (4509295292): TOO HIGH
+# Attempt 2 (1597246662): TOO HIGH
 
 # Get all rectangles and sort them by area
 def sort_rectangles(points):
-    print(f"Point one is {points[0]}")
     rectangles = []
     for i in range(len(points)):
         x1 = points[i].x
         y1 = points[i].y
-        j = i
+        j = i + 1
         while j < len(points):
             x2 = points[j].x
             y2 = points[j].y
@@ -109,79 +112,220 @@ def get_inside_directions(points: list[Point]):
         lpoint = points[(i-1)%len(points)]
         rpoint = points[(i+1)%len(points)]
 
-        print(f"Calculating cross product for point {point}")
-
         # Vector from lpoint to point
         v1 = np.array([point.x-lpoint.x, point.y-lpoint.y, 0])
         # Vector from point to rpoint
         v2 = np.array([rpoint.x-point.x, rpoint.y-point.y, 0])
-        print(f"Incoming vector: {v1}\nOutgoing vector: {v2}")
 
         cp = np.cross(v1, v2)
         point.cp = cp[2]
-        print(f"Their cross product is {point.cp}")
 
         if (v1[1] < 0 and v2[0] > 0) or (v1[0] < 0 and v2[1] > 0):
             # top left corner
-            print("Top left corner")
             point.inside_direction = "SE" if point.cp > 0 else "NW"
         elif (v1[0] > 0 and v2[1] > 0) or (v1[1] < 0 and v2[0] < 0):
             # top right corner
-            print("Top right corner")
             point.inside_direction = "SW" if point.cp > 0 else "NE"
         elif (v1[1] > 0 and v2[0] < 0) or (v1[0] > 0 and v2[1] < 0):
             # bottom right corner
-            print("Bottom right corner")
             point.inside_direction = "NW" if point.cp > 0 else "SE"
         elif (v1[0] < 0 and v2[1] < 0) or (v1[1] > 0 and v2[0] > 0):
             # bottom left corner
-            print("Bottom left corner")
             point.inside_direction = "NE" if point.cp > 0 else "SW"
-
-        # Either horizontal or vertical line
-        if point.cp == 0:
-            if v1[0] == 0 and v2[0] == 0:
-                # vertical line
-                if lpoint.inside_direction == "NW" or lpoint.inside_direction == "W" or lpoint.inside_direction == "SW":
-                    print("Left side")
-                    point.inside_direction = "W"
-                else:
-                    print("Right side")
-                    point.inside_direction = "E"
-            else:
-                # horizontal line
-                if lpoint.inside_direction == "NW" or lpoint.inside_direction == "N" or lpoint.inside_direction == "NE":
-                    print("Top side")
-                    point.inside_direction = "N"
-                else:
-                    print("Bottom side")
-                    point.inside_direction = "S"
-        print(f"The direction of the inside face from this point is {point.inside_direction}")
 
 # Checks if the outlined rectangle, broadly speaking, is sitting inside of the polygon.
 def corners_inside_polygon(p1: Point, p2: Point):
-    return p1.cp 
+    # This logic doesn't need to be applied to single points or lines
+    if p1.x == p2.x or p1.y == p2.y:
+        return True
+    # Four cases
+    if p1.x < p2.x and p1.y < p2.y:
+        # p1 on top left
+        # print("p1 top left")
+        return ((p1.inside_direction == "SE" or (p1.cp < 0 and p1.inside_direction == "SW"))
+            and (p2.inside_direction == "NW" or (p2.cp < 0 and p2.inside_direction == "NE")))
+    elif p1.x < p2.x and p1.y > p2.y:
+        # p1 on bottom left
+        # print("p1 bottom left")
+        return ((p1.inside_direction == "NW" or (p1.cp < 0 and p1.inside_direction == "NE")) 
+            and (p2.inside_direction == "SE" or (p2.cp < 0 and p2.inside_direction == "SW")))
+    elif p1.x > p2.x and p1.y > p2.y:
+        # p1 on bottom right
+        # print("p1 bottom right")
+        return ((p1.inside_direction == "NW" or (p1.cp < 0 and p1.inside_direction == "NE"))
+            and (p2.inside_direction == "SE" or (p2.cp < 0 and p2.inside_direction == "SW")))
+    else:
+        # p1 on top right
+        # print("p1 top right")
+        return ((p1.inside_direction == "SE" or (p1.cp < 0 and p1.inside_direction == "SW"))
+            and (p2.inside_direction == "NW" or (p2.cp < 0 and p2.inside_direction == "NE")))
 
-# Checks the edge if it's fulled filled in.
-def edge_check(p1, p2):
-    return
+# This method is NAIVE in that it assumes any line intersection with the rectangle results in a not full rectangle.
+# Excludes mean cases of adjacent lines.
+# Also assumes the rectangle is big enough that a rectangle can be fitted inside of the original one and strictly cannot have any intersections.
+# Returns True if no intersections were found on this rectangle, False otherwise.
+def edge_check(points: list[Point], p1: Point, p2: Point):
+    # Create four lines corresponding to the edges of the rectangle.
+    # Check all lines of the polygon for full intersections (line completely crosses rectangle).
+    # If any are found, this isn't a full rectangle.
+    min_x = 0
+    max_x = 0
+    min_y = 0
+    max_y = 0
+    if p1.x < p2.x:
+        min_x = p1.x
+        max_x = p2.x
+    else:
+        min_x = p2.x
+        max_x = p1.x
+    if p1.y < p2.y:
+        min_y = p1.y
+        max_y = p2.y
+    else:
+        min_y = p2.y
+        max_y = p1.y
+
+    s1 = Point(min_x + 1, min_y + 1)
+    s2 = Point(min_x + 1, max_y - 1)
+    s3 = Point(max_x - 1, max_y - 1)
+    s4 = Point(max_x - 1, min_y + 1)
+
+    # print(f"For rectangle with points {p1} and {p2}, created points at {s1}, {s2}, {s3}, and {s4} for intersection check")
+
+    # Iterate through all points, checking every line for intersection
+    for i in range(len(points)):
+        point = points[i]
+        rpoint = points[(i+1)%len(points)]
+        # Check for intersections
+        intersect_1 = lines_intersect(s1, s2, point, rpoint)
+        intersect_2 = lines_intersect(s2, s3, point, rpoint)
+        intersect_3 = lines_intersect(s3, s4, point, rpoint)
+        intersect_4 = lines_intersect(s4, s1, point, rpoint)
+        if intersect_1 or intersect_2 or intersect_3 or intersect_4:
+            return False
+    return True
+
+# Check if line going from p1 to p2 intersects line going from p3 to p4
+def lines_intersect(p1: Point, p2: Point, p3: Point, p4: Point):
+    # No parallel or identical lines
+    if (p1.x == p2.x and p3.x == p4.x) or (p1.y == p2.y and p3.y == p4.y):
+        return False
+    
+    # Some annoying checks here because I need to know what points correspond to the left, top, right, and bottom points
+    lp = None
+    rp = None
+    tp = None
+    bp = None
+    if p1.x == p2.x:
+        if p1.y < p2.y:
+            tp = p1
+            bp = p2
+        else:
+            tp = p2
+            bp = p1
+        if p3.x < p4.x:
+            lp = p3
+            rp = p4
+        else:
+            lp = p4
+            rp = p3
+    else:
+        if p1.x < p2.x:
+            lp = p1
+            rp = p2
+        else:
+            lp = p2
+            rp = p1
+        if p3.y < p4.y:
+            tp = p3
+            bp = p4
+        else:
+            tp = p4
+            bp = p3
+
+    # Since we know these are horizontal and vertical lines, makes the intersection checks here easier
+    # Edge case to add: The second line stops on top of the first line. In this case, the intersection is counted if the second line comes from the inside edge.
+    return tp.x >= lp.x and tp.x <= rp.x and tp.y >= lp.y and bp.y <= lp.y
+
+# Under the NAIVE assumption of no adjacent lines, inside hollow polygons aren't possible without intersecting lines at the edges.
+# Therefore, any point inside of a rectangle means that the rectangle isn't completely whole.
+def has_no_inside_points(points: list[Point], p1: Point, p2: Point):
+    min_x = 0
+    max_x = 0
+    min_y = 0
+    max_y = 0
+    if p1.x < p2.x:
+        min_x = p1.x
+        max_x = p2.x
+    else:
+        min_x = p2.x
+        max_x = p1.x
+    if p1.y < p2.y:
+        min_y = p1.y
+        max_y = p2.y
+    else:
+        min_y = p2.y
+        max_y = p1.y
+    
+    for point in points:
+        if point.x > min_x and point.x < max_x and point.y > min_y and point.y < max_y:
+            return False
+    return True
 
 # Given two points and the set of points, determine if this rectangle is valid.
 def is_a_rectangle(points, p1, p2):
-    return False
+    # NAIVE: Rectangles with width or height or two are valid rectangles
+    width = math.fabs(p1.x - p2.x)
+    height = math.fabs(p1.y - p2.y)
+    if width < 2 or height < 2:
+        # print("This is a line, tough luck")
+        return True
+    # Case 3: Rectangle
+    # print("This is a rectangle")
+    is_in_polygon = corners_inside_polygon(p1, p2)
+    avoids_intersections = edge_check(points, p1, p2)
+    no_inside_points = has_no_inside_points(points, p1, p2)
+    print(f"Is this rectangle with points ({p1}, {p2}) within the polygon? {is_in_polygon}")
+    # print(f"Does this rectangle avoid intersections? {avoids_intersections}")
+    # print(f"Does this rectangle have no inside points? {no_inside_points}")
+    if is_in_polygon and avoids_intersections and no_inside_points:
+        return True
+    else:
+        return False
 
 # Given a list of rectangles and points, find the largest valid rectangle.
+# This list should be sorted starting with the largest area
 def find_largest_valid_rectangle(points, rectangles):
+    rect_counter = 0
+    for rectangle in rectangles:
+        rect_counter += 1
+        # print(f"Looking at rectangle from point {rectangle[0]} to point {rectangle[1]} with area of {rectangle[2]}")
+        if is_a_rectangle(points, rectangle[0], rectangle[1]):
+            print(f"Rectangle {rect_counter} was selected.")
+            return rectangle[2]
     return 0
 
 def part_two():
     file = "AOCday9/AOCday9example.txt"
-    # file = "Inputs/AOCday9.txt"
+    file = "Inputs/AOCday9.txt"
     points = process_input(file)
-    get_inside_directions(points)
-    rectangles = sort_rectangles(points)
-    area = find_largest_valid_rectangle(points, rectangles)
-    print("Example: Largest valid rectangle area is", area)
+    
+    filtered_points = filter(within_x_range, points)
+
+    print("Check all points overlapping impostor rectangle along x axis")
+    for point in list(filtered_points):
+        print(point)
+
+    # print("Obtained points")
+    # get_inside_directions(points)
+    # print("Obtained cross products and inside directions.")
+    # rectangles = sort_rectangles(points)
+    # print("Sorted the rectangles by area.")
+    # area = find_largest_valid_rectangle(points, rectangles)
+    # print("Part 2: Largest valid rectangle area is", area)
+
+def within_x_range(point, min_x=17217, max_x=82570):
+    return point.x > min_x and point.x < max_x
 
 before = time.perf_counter_ns()
 part_two()
