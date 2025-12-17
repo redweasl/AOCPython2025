@@ -374,6 +374,9 @@ def line_intersection_tests():
 
     print("PASSED")
 
+inside_directions_tests()
+line_intersection_tests()
+
 ##########################################################################
 
 # Part 1: Find largest area of any rectangle that can be made
@@ -406,12 +409,9 @@ def part_two():
     area = find_largest_valid_rectangle(points, rectangles)
     print("Part 2 (1325340522<x<1597246662): Largest valid rectangle area is", area)
 
-# before = time.perf_counter_ns()
-# part_two()
-# elapsed = time.perf_counter_ns() - before
-# print(f"Part 2 took {elapsed//1_000_000} ms")
+before = time.perf_counter_ns()
+part_two()
+elapsed = time.perf_counter_ns() - before
+print(f"Part 2 took {elapsed//1_000_000} ms")
 
 # cProfile.run("part_two()", sort = "cumtime")
-
-inside_directions_tests()
-line_intersection_tests()
