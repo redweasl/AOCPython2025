@@ -99,12 +99,8 @@ def is_inside_polygon(p1: Point, p2: Point):
     lp, rp = None, None
     vv = p2.y - p1.y
     hv = p2.x - p1.x
-    area = p1.get_area(p2)
     lp = p1 if hv > 0 else p2
     rp = p2 if hv > 0 else p1
-
-    if area == 1410501884:
-        print(f"Investigating this rectangle with area {area}.\nLeft point: {lp}\nRight point: {rp}")
 
     if vv * hv > 0: # Bottom left & top right corner
         return (((lp.inside_direction == "NE" and lp.is_ccw) or (not lp.is_ccw and lp.inside_direction != "SW")) and
