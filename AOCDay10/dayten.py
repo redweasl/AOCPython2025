@@ -85,9 +85,9 @@ def fewest_button_presses_jolts(machine: Machine):
         vars.append(Int(f"v{i}"))
     
     # Create equations
-    s = Solver()
+    opt = z3.Optimize()
     for i in range(len(vars)):
-        s.add(vars[i] >= 0)
+        opt.add(vars[i] >= 0)
 
     for i in range(len(machine.jreqs)):
         sum = machine.jreqs[i]
@@ -95,24 +95,19 @@ def fewest_button_presses_jolts(machine: Machine):
         for j in range(len(machine.bschems)):
             if i in machine.bschems[j]:
                 equation = vars[j] if equation is None else equation + vars[j]
-        s.add(equation == sum)
+        opt.add(equation == sum)
 
-    # Solve the constraints until no solutions remain: return the minimum sum
-    # Used this resource to learn how to manage multiple solutions: https://brandonrozek.com/blog/obtaining-multiple-solutions-z3/
-    min_sum = None
-    result = s.check()
-    while result == z3.sat:
-        m = s.model()
-        sum = 0
+    # Optimize the constraints to find the minimum sum of variables
+    min_sum = 0
+    sum_constraint = None
+    for var in vars:
+        sum_constraint = var if sum_constraint is None else sum_constraint + var
+        
+    opt.minimize(sum_constraint)
+    if opt.check() == z3.sat:
+        m = opt.model()
         for var in m.decls():
-            sum += m[var].py_value()
-        min_sum = sum if min_sum is None else min(min_sum, sum)
-
-        block = []
-        for var in m:
-            block.append(var() != m[var])
-        s.add(z3.Or(block))
-        result = s.check()
+            min_sum += m[var].py_value()
 
     return min_sum
 
