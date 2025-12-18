@@ -51,7 +51,6 @@ def fewest_button_presses(machine: Machine):
             for num in bschem:
                 new_diagram = new_diagram[:num] + ("#" if new_diagram[num] == "." else ".") + new_diagram[num+1:]
             if new_diagram == machine.ld:
-                # print(f"Fewest button presses for machine {machine} is {num_presses + 1}")
                 return num_presses + 1
             elif new_diagram not in dict:
                 dict.add(new_diagram)
