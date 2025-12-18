@@ -6,6 +6,8 @@
 
 import time
 
+pathsDict: dict = dict()
+
 class Device:
     def __init__(self, label):
         self.label = label
@@ -14,15 +16,19 @@ class Device:
     def addConnection(self, other):
         self.devices.append(other)
 
-    def numPathsToOut(self, devicedict: dict):
-        # print(f"Looking at device {self}")
-        if self.label == "out":
+    def numPathsToOut(self, devicedict: dict, endlabel: str):
+        if self.label == endlabel:
             return 1
         else:
             sum = 0
-            for device in self.devices:
-                sum += devicedict.get(device).numPathsToOut(devicedict)
-            # print(f"Done with machine {self.label}")
+            for deviceLabel in self.devices:
+                devicePaths = 0
+                if pathsDict.get(deviceLabel) is None:
+                    devicePaths = devicedict.get(deviceLabel).numPathsToOut(devicedict, endlabel)
+                    pathsDict[deviceLabel] = devicePaths
+                else:
+                    devicePaths = pathsDict.get(deviceLabel)
+                sum += devicePaths
             return sum
     
     def __str__(self):
@@ -41,24 +47,36 @@ def process_input(input_name):
                 devices[label].addConnection(d)
     return devices
 
-def numPathsYouToOut(devicedict: dict[Device]):
-    if devicedict.get("you") is None:
+def numPathsToOut(startlabel: str, endlabel: str, devicedict: dict[Device]):
+    if devicedict.get(startlabel) is None or devicedict.get(endlabel) is None :
         return -1
-    return devicedict.get("you").numPathsToOut(devicedict)
+    pathsDict.clear()
+    return devicedict.get(startlabel).numPathsToOut(devicedict, endlabel)
 
 # PART 1: How many different paths lead you to out?
 def part_one():
     file = "Inputs/AOCday11.txt"
     devices = process_input(file)
-    numPaths = numPathsYouToOut(devices)
-    print(f"Part 1 (UNKNOWN): Number of paths from device you to out: {numPaths}")
-
-file = "AOCDay11/AOCday11example.txt"
-devices = process_input(file)
-numPaths = numPathsYouToOut(devices)
-print(f"Part 1 example (5): Number of paths from device you to out: {numPaths}")
+    numPaths = numPathsToOut("you", "out", devices)
+    print(f"Part 1 (658): Number of paths from device you to out: {numPaths}")
 
 before = time.perf_counter_ns()
 part_one()
 elapsed = time.perf_counter_ns() - before
 print(f"Part 1 took {elapsed//1_000_000} ms")
+
+# PART 2: How many different paths lead svr to out that also pass through fft and dac?
+def part_two():
+    file = "Inputs/AOCday11.txt"
+    devices = process_input(file)
+    n1 = numPathsToOut("svr", "fft", devices)
+    n2 = numPathsToOut("fft", "dac", devices)
+    n3 = numPathsToOut("dac", "out", devices)
+    numPaths = n1 * n2 * n3
+    totalPaths = numPathsToOut("svr", "out", devices)
+    print(f"Part 2 (371113003846800): Number of paths from device svr to out passing through fft and dac: {numPaths}\nCompare to total paths from svr to out: {totalPaths}")
+
+before = time.perf_counter_ns()
+part_two()
+elapsed = time.perf_counter_ns() - before
+print(f"Part 2 took {elapsed//1_000_000} ms")
